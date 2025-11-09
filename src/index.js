@@ -12,9 +12,12 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
 
+const frontendUrl = process.env.FRONTEND_URL;
+const port = process.env.PORT;
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend origin
+    origin: frontendUrl, // frontend origin
     credentials: true, // allow cookies
   })
 );
@@ -26,7 +29,6 @@ import { transactionRouter } from "../routes/transaction.routes.js";
 app.use("/", userRouter);
 app.use("/", bookRouter);
 app.use("/", transactionRouter);
-const port = process.env.PORT || 8001;
 
 const startServer = async () => {
   try {
@@ -34,8 +36,8 @@ const startServer = async () => {
     await connectionDB;
     console.log("✅ MongoDB connected. Starting server...");
 
-    app.listen(process.env.PORT, () => {
-      console.log(`🚀 Server running on port ${process.env.PORT}`);
+    app.listen(port, () => {
+      console.log(`🚀 Server running on port ${port}`);
     });
   } catch (error) {
     console.error("❌ Failed to connect to database:", error);
