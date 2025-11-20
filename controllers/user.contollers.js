@@ -371,7 +371,7 @@ const listOfReturnedBooks = async (req, res) => {
 const transporter = nodemailer.createTransport({
   secure: true,
   host: "smtp.gmail.com",
-  port: 465,
+  port: 587,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
