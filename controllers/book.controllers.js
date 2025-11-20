@@ -3,16 +3,6 @@ import User from "../model/users.model.js";
 import { bookRouter } from "../routes/book.routes.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Transaction } from "../model/transactions.model.js";
-import nodemailer from "nodemailer";
-const transporter = nodemailer.createTransport({
-  secure: true,
-  host: "smtp.gmail.com",
-  port: 587,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 //********author*********
 const createBook = async (req, res) => {

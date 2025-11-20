@@ -20,7 +20,7 @@ export const verifyToken = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
-    console.log("user from auth middleware", user);
+    // console.log("user from auth middleware", user);
 
     req.user = user;
 

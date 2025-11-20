@@ -6,14 +6,14 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-// ✅ Email Transporter Setup
+// ================================================================
+// 📧 FIXED — Gmail App Password Working on Render
+// ================================================================
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: true,
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.EMAIL_USER, // Gmail address
+    pass: process.env.EMAIL_PASS, // Gmail App Password (16-digit)
   },
 });
 
@@ -36,7 +36,6 @@ const borrowBook = async (req, res) => {
     if (book.availableCopies < 1)
       return res.status(400).json({ message: "No copies available" });
 
-    // Prevent duplicate borrow
     const existing = await Transaction.findOne({
       user_id,
       book_id,
@@ -47,7 +46,6 @@ const borrowBook = async (req, res) => {
         .status(409)
         .json({ message: "You already borrowed this book." });
 
-    // Create new transaction
     const issuedAt = new Date();
     const returnAt = new Date();
     returnAt.setDate(issuedAt.getDate() + 15);
@@ -63,7 +61,6 @@ const borrowBook = async (req, res) => {
     book.availableCopies -= 1;
     await book.save();
 
-    // Populate user and book info
     const populated = await Transaction.findById(transaction._id)
       .populate("user_id", "fullname email")
       .populate({
@@ -72,7 +69,7 @@ const borrowBook = async (req, res) => {
         populate: { path: "author", select: "fullname" },
       });
 
-    // ✅ Send email
+    // 📧 Send Borrow Email
     await transporter.sendMail({
       from: `"Libraverse 📚" <${process.env.EMAIL_USER}>`,
       to: user.email,
@@ -117,21 +114,19 @@ const returnBook = async (req, res) => {
     if (transaction.returned)
       return res.status(400).json({ message: "Book already returned" });
 
-    // Update transaction
     transaction.returned = true;
     transaction.returnedAt = new Date();
     await transaction.save();
 
-    // Update book
     const book = await Book.findById(transaction.book_id._id);
     if (book) {
       book.availableCopies += 1;
       await book.save();
     }
 
-    // ✅ Send email
+    // 📧 Send Return Email
     await transporter.sendMail({
-      from: `"Libraverse " <${process.env.EMAIL_USER}>`,
+      from: `"Libraverse" <${process.env.EMAIL_USER}>`,
       to: transaction.user_id.email,
       subject: `Book Returned: "${book.name}"`,
       html: `
@@ -156,27 +151,25 @@ const returnBook = async (req, res) => {
   }
 };
 
+// ================================================================
+// 💰 Buy Book Controller (no email here)
+// ================================================================
 const buyBook = async (req, res) => {
   try {
     const { user_id, book_id } = req.body;
 
-    // ✅ 1. Validate user
     const user = await User.findById(user_id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // ✅ 2. Validate book
     const book = await Book.findById(book_id).populate("author");
     if (!book) return res.status(404).json({ message: "Book not found" });
 
-    // ✅ 3. Validate author
     const author = await User.findById(book.author._id);
     if (!author) return res.status(404).json({ message: "Author not found" });
 
-    // ✅ 4. Increase author earnings
     author.earnings += book.price;
     await author.save();
 
-    // ✅ 5. Reduce available copies
     if (book.availableCopies > 0) {
       book.availableCopies -= 1;
       await book.save();

@@ -329,7 +329,7 @@ const listOfBorrwedBooks = async (req, res) => {
       })
       .populate("user_id", "fullname email"); // borrower details
     const numberOfBooks = borrowed.length;
-    console.log("borrowed books", borrowed);
+    // console.log("borrowed books", borrowed);
 
     res.status(200).json({
       message: "Your Borrowed Books",
@@ -369,12 +369,10 @@ const listOfReturnedBooks = async (req, res) => {
 };
 
 const transporter = nodemailer.createTransport({
-  secure: true,
-  host: "smtp.gmail.com",
-  port: 587,
+  service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.EMAIL_USER, // your Gmail
+    pass: process.env.EMAIL_PASS, // 16-digit Gmail App Password
   },
 });
 
